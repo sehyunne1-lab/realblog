@@ -1,5 +1,3 @@
-import { getSession } from "@/lib/session"
-import { redirect } from "next/navigation"
 import LoginForm from "./LoginForm"
 
 interface Props {
@@ -7,9 +5,6 @@ interface Props {
 }
 
 export default async function LoginPage({ searchParams }: Props) {
-  const isAdmin = await getSession()
-  if (isAdmin) redirect("/")
-
   const { callbackUrl } = await searchParams
 
   return (
