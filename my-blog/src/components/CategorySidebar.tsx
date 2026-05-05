@@ -38,23 +38,23 @@ export default async function CategorySidebar({ activeName }: Props) {
     }`
 
   return (
-    <aside className="w-full md:w-48 shrink-0">
+    <aside className="w-full md:w-48 shrink-0 min-w-0">
       <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 px-3 mb-2">
         카테고리
       </p>
       <nav className="flex flex-col gap-0.5">
         <Link href="/" className={linkClass(activeName === undefined)}>
-          <span>전체</span>
-          <span className="text-xs tabular-nums opacity-60">{totalCount}</span>
+          <span className="truncate">전체</span>
+          <span className="text-xs tabular-nums opacity-60 shrink-0 ml-2">{totalCount}</span>
         </Link>
         {visible.map((cat) => (
-          <div key={cat.id} className="group relative flex items-center">
+          <div key={cat.id} className="group relative flex items-center min-w-0">
             <Link
               href={`/category/${encodeURIComponent(cat.name)}`}
-              className={linkClass(activeName === cat.name) + " flex-1"}
+              className={linkClass(activeName === cat.name) + " flex-1 min-w-0"}
             >
-              <span>{cat.name}</span>
-              <span className="text-xs tabular-nums opacity-60">{cat._count.posts}</span>
+              <span className="truncate">{cat.name}</span>
+              <span className="text-xs tabular-nums opacity-60 shrink-0 ml-2">{cat._count.posts}</span>
             </Link>
             {isAdmin && <DeleteCategoryButton id={cat.id} name={cat.name} />}
           </div>
