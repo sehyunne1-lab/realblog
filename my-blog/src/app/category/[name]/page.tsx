@@ -1,13 +1,34 @@
 import Link from "next/link"
+import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/session"
 import CategorySidebar from "@/components/CategorySidebar"
 
-export default async function HomePage() {
+interface Props {
+  params: Promise<{ name: string }>
+}
+
+export async function generateMetadata({ params }: Props) {
+  const { name } = await params
+  return { title: `${decodeURIComponent(name)} — Blog` }
+}
+
+export default async function CategoryPage({ params }: Props) {
+  const { name } = await params
+  const categoryName = decodeURIComponent(name)
   const isAdmin = await getSession()
 
+  const category = await prisma.category.findUnique({
+    where: { name: categoryName },
+  })
+
+  if (!category) notFound()
+
   const posts = await prisma.post.findMany({
-    where: isAdmin ? undefined : { status: "published" },
+    where: {
+      categoryId: category.id,
+      ...(isAdmin ? {} : { status: "published" }),
+    },
     orderBy: { createdAt: "desc" },
     include: { category: true },
   })
@@ -15,10 +36,11 @@ export default async function HomePage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-10 flex-1 w-full">
       <div className="flex flex-col md:flex-row gap-10">
-        <CategorySidebar />
+        <CategorySidebar activeName={categoryName} />
         <main className="flex-1 min-w-0">
+          <h1 className="text-2xl font-bold text-[var(--foreground)] mb-8">{categoryName}</h1>
           {posts.length === 0 ? (
-            <p className="text-gray-400 text-center py-24">아직 게시글이 없습니다.</p>
+            <p className="text-gray-400 text-center py-24">이 카테고리에 게시글이 없습니다.</p>
           ) : (
             <div className="space-y-8">
               {posts.map((post) => (
@@ -27,14 +49,6 @@ export default async function HomePage() {
                   className="border-b border-gray-100 dark:border-gray-800 pb-8"
                 >
                   <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
-                    {post.category && (
-                      <Link
-                        href={`/category/${encodeURIComponent(post.category.name)}`}
-                        className="text-gray-500 dark:text-gray-400 hover:underline"
-                      >
-                        {post.category.name}
-                      </Link>
-                    )}
                     <span>
                       {new Date(post.createdAt).toLocaleDateString("ko-KR", {
                         year: "numeric",

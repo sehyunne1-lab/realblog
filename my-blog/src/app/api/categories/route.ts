@@ -2,6 +2,23 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/session"
 
+export async function GET() {
+  const isAdmin = await getSession()
+
+  const categories = await prisma.category.findMany({
+    orderBy: { name: "asc" },
+    include: {
+      _count: {
+        select: {
+          posts: isAdmin ? true : { where: { status: "published" } },
+        },
+      },
+    },
+  })
+
+  return NextResponse.json(categories)
+}
+
 export async function POST(req: NextRequest) {
   const isAdmin = await getSession()
   if (!isAdmin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
