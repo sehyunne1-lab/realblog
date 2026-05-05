@@ -20,7 +20,6 @@ interface PostEditorProps {
     title: string
     content: unknown
     summary: string | null
-    thumbnail: string | null
     status: string
     categoryId: string | null
   }
@@ -33,12 +32,9 @@ export default function PostEditor({ categories, post }: PostEditorProps) {
   const [title, setTitle] = useState(post?.title ?? "")
   const [summary, setSummary] = useState(post?.summary ?? "")
   const [categoryId, setCategoryId] = useState(post?.categoryId ?? "")
-  const [thumbnail, setThumbnail] = useState(post?.thumbnail ?? "")
-  const [thumbnailUploading, setThumbnailUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [newCategory, setNewCategory] = useState("")
   const [catList, setCatList] = useState(categories)
-  const thumbnailInputRef = useRef<HTMLInputElement>(null)
 
   const editor = useEditor({
     extensions: [
@@ -62,7 +58,6 @@ export default function PostEditor({ categories, post }: PostEditorProps) {
       const body = {
         title,
         summary: summary || null,
-        thumbnail: thumbnail || null,
         content: editor?.getJSON() ?? {},
         status,
         categoryId: categoryId || null,
@@ -86,7 +81,7 @@ export default function PostEditor({ categories, post }: PostEditorProps) {
         setSaving(false)
       }
     },
-    [title, summary, thumbnail, categoryId, editor, isEdit, post, router]
+    [title, summary, categoryId, editor, isEdit, post, router]
   )
 
   async function handleAddCategory() {
@@ -102,25 +97,6 @@ export default function PostEditor({ categories, post }: PostEditorProps) {
       setCatList((prev) => [...prev, cat])
       setCategoryId(cat.id)
       setNewCategory("")
-    }
-  }
-
-  async function handleThumbnailFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setThumbnailUploading(true)
-    try {
-      const form = new FormData()
-      form.append("file", file)
-      const res = await fetch("/api/upload", { method: "POST", body: form })
-      if (!res.ok) throw new Error()
-      const { url } = await res.json()
-      setThumbnail(url)
-    } catch {
-      alert("썸네일 업로드에 실패했습니다.")
-    } finally {
-      setThumbnailUploading(false)
-      e.target.value = ""
     }
   }
 
@@ -142,42 +118,6 @@ export default function PostEditor({ categories, post }: PostEditorProps) {
           onChange={(e) => setSummary(e.target.value)}
           className="w-full text-sm bg-transparent border-b border-gray-100 dark:border-gray-800 pb-2 focus:outline-none focus:border-gray-300 dark:focus:border-gray-600 text-[var(--foreground)] placeholder-gray-300 dark:placeholder-gray-600"
         />
-
-        {/* 썸네일 */}
-        <div>
-          {thumbnail ? (
-            <div className="relative w-full max-w-xs">
-              <img
-                src={thumbnail}
-                alt="썸네일 미리보기"
-                className="w-full h-40 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
-              />
-              <button
-                type="button"
-                onClick={() => setThumbnail("")}
-                className="absolute top-2 right-2 text-xs px-2 py-1 bg-black/60 text-white rounded hover:bg-black/80 transition"
-              >
-                제거
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => thumbnailInputRef.current?.click()}
-              disabled={thumbnailUploading}
-              className="text-sm px-3 py-1.5 rounded-lg border border-dashed border-gray-300 dark:border-gray-700 text-gray-400 hover:border-gray-400 dark:hover:border-gray-500 transition disabled:opacity-50"
-            >
-              {thumbnailUploading ? "업로드 중..." : "+ 썸네일 추가"}
-            </button>
-          )}
-          <input
-            ref={thumbnailInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleThumbnailFile}
-          />
-        </div>
 
         <div className="flex items-center gap-2">
           <select

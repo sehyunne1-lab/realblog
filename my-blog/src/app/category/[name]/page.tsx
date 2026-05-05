@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/session"
 import CategorySidebar from "@/components/CategorySidebar"
+import { extractFirstImage } from "@/lib/extractFirstImage"
 
 interface Props {
   params: Promise<{ name: string }>
@@ -72,13 +73,16 @@ export default async function CategoryPage({ params }: Props) {
                         </p>
                       )}
                     </div>
-                    {post.thumbnail && (
-                      <img
-                        src={post.thumbnail}
-                        alt=""
-                        className="w-24 h-16 object-cover rounded-lg flex-shrink-0"
-                      />
-                    )}
+                    {(() => {
+                      const img = post.thumbnail ?? extractFirstImage(post.content)
+                      return img ? (
+                        <img
+                          src={img}
+                          alt=""
+                          className="w-24 h-16 object-cover rounded-lg flex-shrink-0"
+                        />
+                      ) : null
+                    })()}
                   </Link>
                 </article>
               ))}

@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session"
 import PostContent from "@/components/PostContent"
 import PostActions from "@/components/PostActions"
 import CommentSection from "@/components/CommentSection"
+import { extractFirstImage } from "@/lib/extractFirstImage"
 
 interface Props {
   params: Promise<{ id: string }>
@@ -48,13 +49,12 @@ export default async function PostPage({ params }: Props) {
 
         <h1 className="text-3xl font-bold text-[var(--foreground)] mb-8">{post.title}</h1>
 
-        {post.thumbnail && (
-          <img
-            src={post.thumbnail}
-            alt=""
-            className="w-full max-h-80 object-cover rounded-xl mb-8"
-          />
-        )}
+        {(() => {
+          const img = post.thumbnail ?? extractFirstImage(post.content)
+          return img ? (
+            <img src={img} alt="" className="w-full max-h-80 object-cover rounded-xl mb-8" />
+          ) : null
+        })()}
 
         <PostContent content={post.content} />
 

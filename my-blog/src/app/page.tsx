@@ -2,6 +2,7 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/session"
 import CategorySidebar from "@/components/CategorySidebar"
+import { extractFirstImage } from "@/lib/extractFirstImage"
 
 export default async function HomePage() {
   const isAdmin = await getSession()
@@ -82,13 +83,16 @@ export default async function HomePage() {
                         </p>
                       )}
                     </div>
-                    {post.thumbnail && (
-                      <img
-                        src={post.thumbnail}
-                        alt=""
-                        className="w-24 h-16 object-cover rounded-lg flex-shrink-0"
-                      />
-                    )}
+                    {(() => {
+                      const img = post.thumbnail ?? extractFirstImage(post.content)
+                      return img ? (
+                        <img
+                          src={img}
+                          alt=""
+                          className="w-24 h-16 object-cover rounded-lg flex-shrink-0"
+                        />
+                      ) : null
+                    })()}
                   </Link>
                 </article>
               ))}
