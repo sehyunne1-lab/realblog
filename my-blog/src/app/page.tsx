@@ -9,12 +9,12 @@ export default async function HomePage() {
   if (!isAdmin) {
     return (
       <div className="flex-1 flex flex-col">
-        <div className="w-full" style={{ height: "50vh" }}>
-          {/* 이미지 경로: /main-image.jpg (public 폴더에 교체 가능) */}
+        <div className="flex justify-center">
           <img
             src="/main-image.webp"
             alt=""
-            className="w-full h-full object-cover"
+            className="object-cover"
+            style={{ height: "50vh", width: "66vw" }}
           />
         </div>
         <div className="flex flex-col items-center gap-4 py-10">
