@@ -20,6 +20,7 @@ export default async function EditPage({ params }: Props) {
         title: true,
         content: true,
         summary: true,
+        thumbnail: true,
         status: true,
         categoryId: true,
       },

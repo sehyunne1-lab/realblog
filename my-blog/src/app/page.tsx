@@ -71,14 +71,23 @@ export default async function HomePage() {
                       </span>
                     )}
                   </div>
-                  <Link href={`/posts/${post.id}`} className="group block">
-                    <h2 className="text-xl font-semibold text-[var(--foreground)] group-hover:underline mb-2">
-                      {post.title}
-                    </h2>
-                    {post.summary && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                        {post.summary}
-                      </p>
+                  <Link href={`/posts/${post.id}`} className="group flex gap-4 items-start">
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-xl font-semibold text-[var(--foreground)] group-hover:underline mb-2">
+                        {post.title}
+                      </h2>
+                      {post.summary && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                          {post.summary}
+                        </p>
+                      )}
+                    </div>
+                    {post.thumbnail && (
+                      <img
+                        src={post.thumbnail}
+                        alt=""
+                        className="w-24 h-16 object-cover rounded-lg flex-shrink-0"
+                      />
                     )}
                   </Link>
                 </article>

@@ -11,7 +11,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (!isAdmin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { id } = await params
-  const { title, content, summary, status, categoryId } = await req.json()
+  const { title, content, summary, thumbnail, status, categoryId } = await req.json()
 
   const post = await prisma.post.update({
     where: { id },
@@ -19,6 +19,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       title,
       content,
       summary: summary ?? null,
+      thumbnail: thumbnail ?? null,
       status,
       categoryId: categoryId ?? null,
     },

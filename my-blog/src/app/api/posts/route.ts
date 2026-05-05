@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   const isAdmin = await getSession()
   if (!isAdmin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const { title, content, summary, status, categoryId } = await req.json()
+  const { title, content, summary, thumbnail, status, categoryId } = await req.json()
   if (!title) return NextResponse.json({ error: "제목이 필요합니다" }, { status: 400 })
 
   const post = await prisma.post.create({
@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
       title,
       content,
       summary: summary ?? null,
+      thumbnail: thumbnail ?? null,
       status: status ?? "draft",
       categoryId: categoryId ?? null,
     },
