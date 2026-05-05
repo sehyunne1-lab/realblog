@@ -193,6 +193,9 @@ export default function PostEditor({ categories, post }: PostEditorProps) {
 }
 
 function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> | null }) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+
   if (!editor) return null
 
   const btn = (label: string, action: () => void, active?: boolean) => (
@@ -207,6 +210,25 @@ function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> | null
     </button>
   )
 
+  async function handleImageFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !editor) return
+    setUploading(true)
+    try {
+      const form = new FormData()
+      form.append("file", file)
+      const res = await fetch("/api/upload", { method: "POST", body: form })
+      if (!res.ok) throw new Error("업로드 실패")
+      const { url } = await res.json()
+      editor.chain().focus().setImage({ src: url }).run()
+    } catch {
+      alert("이미지 업로드에 실패했습니다.")
+    } finally {
+      setUploading(false)
+      e.target.value = ""
+    }
+  }
+
   return (
     <div className="flex flex-wrap gap-1 px-3 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
       {btn("B", () => editor.chain().focus().toggleBold().run(), editor.isActive("bold"))}
@@ -220,6 +242,21 @@ function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> | null
       {btn("인용", () => editor.chain().focus().toggleBlockquote().run(), editor.isActive("blockquote"))}
       {btn("코드", () => editor.chain().focus().toggleCodeBlock().run(), editor.isActive("codeBlock"))}
       {btn("─", () => editor.chain().focus().setHorizontalRule().run())}
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploading}
+        className="px-2 py-1 text-sm rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition disabled:opacity-50"
+      >
+        {uploading ? "업로드 중..." : "이미지"}
+      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleImageFile}
+      />
     </div>
   )
 }
