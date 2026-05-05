@@ -1,5 +1,6 @@
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { getSession } from "@/lib/session"
 import PostEditor from "@/components/PostEditor"
 
 interface Props {
@@ -8,6 +9,8 @@ interface Props {
 
 export default async function EditPage({ params }: Props) {
   const { id } = await params
+  const isAdmin = await getSession()
+  if (!isAdmin) redirect("/")
 
   const [post, categories] = await Promise.all([
     prisma.post.findUnique({

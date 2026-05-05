@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/session"
 import CategorySidebar from "@/components/CategorySidebar"
@@ -18,6 +18,8 @@ export default async function CategoryPage({ params }: Props) {
   const categoryName = decodeURIComponent(name)
   const isAdmin = await getSession()
 
+  if (!isAdmin) redirect("/")
+
   const category = await prisma.category.findUnique({
     where: { name: categoryName },
   })
@@ -25,10 +27,7 @@ export default async function CategoryPage({ params }: Props) {
   if (!category) notFound()
 
   const posts = await prisma.post.findMany({
-    where: {
-      categoryId: category.id,
-      ...(isAdmin ? {} : { status: "published" }),
-    },
+    where: { categoryId: category.id },
     orderBy: { createdAt: "desc" },
     include: { category: true },
   })

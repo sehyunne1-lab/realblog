@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/session"
 import PostContent from "@/components/PostContent"
@@ -12,6 +12,8 @@ interface Props {
 export default async function PostPage({ params }: Props) {
   const { id } = await params
   const isAdmin = await getSession()
+
+  if (!isAdmin) redirect("/")
 
   const post = await prisma.post.findUnique({
     where: { id },
