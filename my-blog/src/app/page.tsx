@@ -12,7 +12,7 @@ export default async function HomePage() {
         <div className="w-full" style={{ height: "calc(100vh - 3.5rem)" }}>
           {/* 이미지 경로: /main-image.jpg (public 폴더에 교체 가능) */}
           <img
-            src="/main-image.png"
+            src="/main-image.webp"
             alt=""
             className="w-full h-full object-cover"
           />
