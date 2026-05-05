@@ -13,7 +13,7 @@ export default async function HomePage() {
           <img
             src="/main-image.webp"
             alt=""
-            className="object-cover"
+            className="object-cover rounded-2xl"
             style={{ height: "50vh", width: "66vw" }}
           />
         </div>
