@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/session"
+import DeleteCategoryButton from "./DeleteCategoryButton"
 
 interface Props {
   activeName?: string
@@ -47,14 +48,16 @@ export default async function CategorySidebar({ activeName }: Props) {
           <span className="text-xs tabular-nums opacity-60">{totalCount}</span>
         </Link>
         {visible.map((cat) => (
-          <Link
-            key={cat.id}
-            href={`/category/${encodeURIComponent(cat.name)}`}
-            className={linkClass(activeName === cat.name)}
-          >
-            <span>{cat.name}</span>
-            <span className="text-xs tabular-nums opacity-60">{cat._count.posts}</span>
-          </Link>
+          <div key={cat.id} className="group relative flex items-center">
+            <Link
+              href={`/category/${encodeURIComponent(cat.name)}`}
+              className={linkClass(activeName === cat.name) + " flex-1"}
+            >
+              <span>{cat.name}</span>
+              <span className="text-xs tabular-nums opacity-60">{cat._count.posts}</span>
+            </Link>
+            {isAdmin && <DeleteCategoryButton id={cat.id} name={cat.name} />}
+          </div>
         ))}
       </nav>
     </aside>
