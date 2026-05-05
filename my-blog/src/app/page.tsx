@@ -9,7 +9,7 @@ export default async function HomePage() {
   if (!isAdmin) {
     return (
       <div className="flex-1 flex flex-col">
-        <div className="w-full" style={{ height: "calc(100vh - 3.5rem)" }}>
+        <div className="w-full" style={{ height: "50vh" }}>
           {/* 이미지 경로: /main-image.jpg (public 폴더에 교체 가능) */}
           <img
             src="/main-image.webp"
