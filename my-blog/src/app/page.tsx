@@ -2,7 +2,7 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/session"
 import CategorySidebar from "@/components/CategorySidebar"
-import { extractFirstImage } from "@/lib/extractFirstImage"
+import { extractFirstImage, extractTextExcerpt } from "@/lib/extractFirstImage"
 
 export default async function HomePage() {
   const isAdmin = await getSession()
@@ -72,28 +72,33 @@ export default async function HomePage() {
                       </span>
                     )}
                   </div>
-                  <Link href={`/posts/${post.id}`} className="group flex gap-4 items-start">
-                    <div className="flex-1 min-w-0">
-                      <h2 className="text-xl font-semibold text-[var(--foreground)] group-hover:underline mb-2">
-                        {post.title}
-                      </h2>
-                      {post.summary && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                          {post.summary}
-                        </p>
-                      )}
-                    </div>
-                    {(() => {
-                      const img = post.thumbnail ?? extractFirstImage(post.content)
-                      return img ? (
-                        <img
-                          src={img}
-                          alt=""
-                          className="w-24 h-16 object-cover rounded-lg flex-shrink-0"
-                        />
-                      ) : null
-                    })()}
-                  </Link>
+                  {(() => {
+                    const img = post.thumbnail ?? extractFirstImage(post.content)
+                    const excerpt = !img
+                      ? (post.summary || extractTextExcerpt(post.content))
+                      : post.summary
+                    return (
+                      <Link href={`/posts/${post.id}`} className="group flex gap-4 items-start">
+                        <div className="flex-1 min-w-0">
+                          <h2 className="text-xl font-semibold text-[var(--foreground)] group-hover:underline mb-2">
+                            {post.title}
+                          </h2>
+                          {excerpt && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+                              {excerpt}
+                            </p>
+                          )}
+                        </div>
+                        {img && (
+                          <img
+                            src={img}
+                            alt=""
+                            className="w-24 h-16 object-cover rounded-lg flex-shrink-0"
+                          />
+                        )}
+                      </Link>
+                    )
+                  })()}
                 </article>
               ))}
             </div>
