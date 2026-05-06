@@ -49,6 +49,9 @@ model Comment {
   id        String   @id @default(cuid())
   content   String
   postId    String
+  fileUrl   String?
+  fileName  String?
+  fileType  String?
   createdAt DateTime @default(now())
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
