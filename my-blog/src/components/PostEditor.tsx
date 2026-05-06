@@ -13,6 +13,12 @@ interface Category {
   name: string
 }
 
+interface Attachment {
+  url: string
+  name: string
+  type: string
+}
+
 interface PostEditorProps {
   categories: Category[]
   post?: {
@@ -22,8 +28,12 @@ interface PostEditorProps {
     summary: string | null
     status: string
     categoryId: string | null
+    attachments?: Attachment[] | null
   }
 }
+
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+const MAX_ATTACH_SIZE = 10 * 1024 * 1024
 
 export default function PostEditor({ categories, post }: PostEditorProps) {
   const isEdit = !!post
@@ -35,6 +45,12 @@ export default function PostEditor({ categories, post }: PostEditorProps) {
   const [saving, setSaving] = useState(false)
   const [newCategory, setNewCategory] = useState("")
   const [catList, setCatList] = useState(categories)
+  const [attachments, setAttachments] = useState<Attachment[]>(
+    Array.isArray(post?.attachments) ? (post.attachments as Attachment[]) : []
+  )
+  const [attachError, setAttachError] = useState("")
+  const [attachUploading, setAttachUploading] = useState(false)
+  const attachInputRef = useRef<HTMLInputElement>(null)
 
   const editor = useEditor({
     extensions: [
@@ -46,6 +62,38 @@ export default function PostEditor({ categories, post }: PostEditorProps) {
     content: post?.content as object ?? "",
     immediatelyRender: false,
   })
+
+  async function handleAttachFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ""
+    if (!file) return
+    setAttachError("")
+    if (file.size > MAX_ATTACH_SIZE) {
+      setAttachError("파일 크기는 10MB 이하여야 합니다.")
+      return
+    }
+    setAttachUploading(true)
+    try {
+      const form = new FormData()
+      form.append("file", file)
+      const res = await fetch("/api/upload/comment", { method: "POST", body: form })
+      if (!res.ok) {
+        const { error } = await res.json()
+        setAttachError(error ?? "파일 업로드에 실패했습니다.")
+        return
+      }
+      const data = await res.json()
+      setAttachments((prev) => [...prev, { url: data.url, name: data.name, type: data.type }])
+    } catch {
+      setAttachError("파일 업로드에 실패했습니다.")
+    } finally {
+      setAttachUploading(false)
+    }
+  }
+
+  function removeAttachment(index: number) {
+    setAttachments((prev) => prev.filter((_, i) => i !== index))
+  }
 
   const handleSave = useCallback(
     async (status: "draft" | "published") => {
@@ -61,6 +109,7 @@ export default function PostEditor({ categories, post }: PostEditorProps) {
         content: editor?.getJSON() ?? {},
         status,
         categoryId: categoryId || null,
+        attachments,
       }
 
       const url = isEdit ? `/api/posts/${post.id}` : "/api/posts"
@@ -81,7 +130,7 @@ export default function PostEditor({ categories, post }: PostEditorProps) {
         setSaving(false)
       }
     },
-    [title, summary, categoryId, editor, isEdit, post, router]
+    [title, summary, categoryId, attachments, editor, isEdit, post, router]
   )
 
   async function handleAddCategory() {
@@ -161,6 +210,62 @@ export default function PostEditor({ categories, post }: PostEditorProps) {
             className="prose dark:prose-invert max-w-none focus:outline-none min-h-[360px]"
           />
         </div>
+      </div>
+
+      {/* 파일 첨부 섹션 */}
+      <div className="mb-6 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-[var(--foreground)]">첨부파일</span>
+          <label className="inline-flex items-center gap-1.5 cursor-pointer text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+            </svg>
+            {attachUploading ? "업로드 중..." : "파일 추가"}
+            <input
+              ref={attachInputRef}
+              type="file"
+              accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.hwp,.docx"
+              className="hidden"
+              onChange={handleAttachFile}
+              disabled={attachUploading}
+            />
+          </label>
+        </div>
+
+        {attachments.length === 0 && !attachUploading && (
+          <p className="text-xs text-gray-400">첨부된 파일이 없습니다. (jpg, png, gif, webp, pdf, hwp, docx · 최대 10MB)</p>
+        )}
+
+        {attachments.length > 0 && (
+          <ul className="space-y-2">
+            {attachments.map((att, i) => (
+              <li key={i} className="flex items-center gap-2">
+                {IMAGE_TYPES.includes(att.type) ? (
+                  <img src={att.url} alt={att.name} className="w-10 h-10 rounded object-cover border border-gray-200 dark:border-gray-700 shrink-0" />
+                ) : (
+                  <div className="w-10 h-10 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                  </div>
+                )}
+                <span className="text-sm text-[var(--foreground)] truncate flex-1">{att.name}</span>
+                <button
+                  type="button"
+                  onClick={() => removeAttachment(i)}
+                  className="text-gray-400 hover:text-red-500 transition shrink-0"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {attachError && <p className="text-xs text-red-500">{attachError}</p>}
       </div>
 
       <div className="flex gap-3 justify-end">

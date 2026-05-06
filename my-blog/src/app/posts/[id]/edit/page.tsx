@@ -7,6 +7,12 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
+interface Attachment {
+  url: string
+  name: string
+  type: string
+}
+
 export default async function EditPage({ params }: Props) {
   const { id } = await params
   const isAdmin = await getSession()
@@ -23,6 +29,7 @@ export default async function EditPage({ params }: Props) {
         thumbnail: true,
         status: true,
         categoryId: true,
+        attachments: true,
       },
     }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
@@ -30,5 +37,15 @@ export default async function EditPage({ params }: Props) {
 
   if (!post) notFound()
 
-  return <PostEditor categories={categories} post={post} />
+  return (
+    <PostEditor
+      categories={categories}
+      post={{
+        ...post,
+        attachments: Array.isArray(post.attachments)
+          ? (post.attachments as unknown as Attachment[])
+          : null,
+      }}
+    />
+  )
 }
