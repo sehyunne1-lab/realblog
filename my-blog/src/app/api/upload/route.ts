@@ -11,7 +11,8 @@ export async function POST(req: NextRequest) {
 
   if (!file) return NextResponse.json({ error: "파일이 없습니다" }, { status: 400 })
 
-  const blob = await put(file.name, file, { access: "public" })
+  const blob = await put(file.name, file, { access: "private" })
+  const proxyUrl = `/api/blob?url=${encodeURIComponent(blob.url)}`
 
-  return NextResponse.json({ url: blob.url })
+  return NextResponse.json({ url: proxyUrl })
 }

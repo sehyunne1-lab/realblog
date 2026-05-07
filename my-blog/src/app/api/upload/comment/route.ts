@@ -35,7 +35,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "허용되지 않는 파일 형식입니다" }, { status: 400 })
   }
 
-  const blob = await put(`comments/${Date.now()}_${file.name}`, file, { access: "public" })
+  const blob = await put(`comments/${Date.now()}_${file.name}`, file, { access: "private" })
+  const proxyUrl = `/api/blob?url=${encodeURIComponent(blob.url)}`
 
-  return NextResponse.json({ url: blob.url, name: file.name, type: file.type })
+  return NextResponse.json({ url: proxyUrl, name: file.name, type: file.type })
 }
